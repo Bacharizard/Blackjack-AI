@@ -32,8 +32,6 @@ white = (255, 255, 255)
 green_cloth = (0, 153, 76)
 yellow = (255, 255, 0)
 
-# Drawing the dealer's hand
-dealer.drawCard()
 
 # Main game loop
 while True:
@@ -45,8 +43,13 @@ while True:
     # Clear the screen
     screen.fill(green_cloth)
 
+    # Drawing the dealer's hand
+    dealer.drawCard()
+    player.drawCard()
+
     # Render dealer's cards
     dealer.show(screen)
+    player.show(screen)
 
     # Draw buttons
     pygame.draw.rect(screen, white, hit_button)
@@ -67,4 +70,3 @@ while True:
 
     pygame.display.flip()
     pygame.time.delay(1000)
-    dealer.drawCard()

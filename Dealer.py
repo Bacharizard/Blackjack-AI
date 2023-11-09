@@ -27,8 +27,9 @@ class Dealer:
         cardGap=100
         scale = screenWidth/(2*screenGap+numCards*cardWidth+(numCards-1)*cardGap)
         for i in range(numCards):
-            if numCards==2 and i==0:
-                cardBack.show(screen,screenGap*scale,0,scale)
-            else:
+            if numCards==2 and i ==1:
+                cardBack.show(screen,screenGap*scale+i*(cardWidth+cardGap)*scale,0,scale)
+            else:    
                 self.hand.cards[i].show(screen,screenGap*scale+i*(cardWidth+cardGap)*scale,0,scale)
+
         
