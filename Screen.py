@@ -33,7 +33,7 @@ green_cloth = (0, 153, 76)
 yellow = (255, 255, 0)
 
 # Drawing the dealer's hand
-dealer.drawHand()
+dealer.drawCard()
 
 # Main game loop
 while True:
