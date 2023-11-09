@@ -9,6 +9,8 @@ class Player:
         self.deck = deck
         self.bust = False
         self.blackjack = False
+        self.money = 1000
+        self.bet = 0
 
     def drawCard(self):
         self.hand.add_card(self.deck.drawCard())
@@ -16,6 +18,13 @@ class Player:
             self.bust = True
         if self.hand.get_value() == 21:
             self.blackjack = True
+
+    def drawHand(self):
+        self.hand.clear()
+        self.bust = False
+        self.blackjack = False
+        self.drawCard()
+        self.drawCard()
         
     def show(self,screen):
         numCards = len(self.hand.cards)
@@ -28,6 +37,4 @@ class Player:
         scale = maxHeight/((1+(numCards-1)*3/4)*cardHeight)
         for i in range(numCards):
             self.hand.cards[i].show(screen,startX+i*cardWidth*scale*3/4,screenHeight-cardHeight*scale*(1+i*(3/4)),scale)
-            print(startX)
-
     
