@@ -98,30 +98,9 @@ while True:
                 # Split the hand only if cards have been dealt and the player has enough money
                 if cards_dealt and len(player.getHand().cards) == 2 and player.getHand().cards[0].rank == player.getHand().cards[1].rank:
                     player.split()
-                    player.show(screen)
-                    pygame.display.flip()
-                    pygame.time.delay(TIME)
-            
-    # If has one card in his hand, draw another card (happens after split)        
-    if cards_dealt and len(player.getHand().cards) == 1:
-        player.draw_card()
 
-    # If the player has no more hands, move to the dealer
-    if cards_dealt and player.pointer==-1:
-        # Reveal the dealer's hidden card
-        if dealer.hidden:
-            dealer.hidden = False
-        else:
-            # Dealer draws cards until he has 17 or more
-            if dealer.hand.get_value() < 17 :
-                dealer.draw_card()
-                pygame.time.delay(TIME)
-            # When the dealer has 17 or more, the balance is updated 
-            else:
-                player.update_balance(dealer)
-                cards_dealt = False
 
-    # Clear the screen
+     # Clear the screen
     screen.fill(green_cloth)
 
     # Render dealer's cards
@@ -167,3 +146,23 @@ while True:
     screen.blit(insurance_text, (insurance_button.x + 10, insurance_button.y + 10))
 
     pygame.display.flip()
+            
+    # If has one card in his hand, draw another card (happens after split)        
+    if cards_dealt and len(player.getHand().cards) == 1:
+        player.draw_card()
+        pygame.time.delay(TIME)
+
+    # If the player has no more hands, move to the dealer
+    if cards_dealt and player.pointer==-1:
+        # Reveal the dealer's hidden card
+        if dealer.hidden:
+            dealer.hidden = False
+        else:
+            # Dealer draws cards until he has 17 or more
+            if dealer.hand.get_value() < 17 :
+                dealer.draw_card()
+                pygame.time.delay(TIME)
+            # When the dealer has 17 or more, the balance is updated 
+            else:
+                player.update_balance(dealer)
+                cards_dealt = False
