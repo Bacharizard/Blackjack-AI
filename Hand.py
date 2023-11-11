@@ -6,17 +6,19 @@ import pygame
 class Hand:
     def __init__(self):
         self.cards = []  # A list to store the cards in the hand
+        self.bust = False
+        self.blackjack = False
 
     def add_card(self, card):
-        """Add a card to the hand."""
         self.cards.append(card)
 
     def clear(self):
-        """Remove all cards from the hand."""
-        self.cards = []
+        self.cards.clear()
+        self.bust = False
+        self.blackjack = False
+
 
     def get_value(self):
-        """Calculate and return the value of the hand."""
         value = 0
         num_aces = 0
 
@@ -24,7 +26,7 @@ class Hand:
             value += card.get_value()
 
             # Check for aces and count them separately
-            if card.get_rank() == 'Ace':
+            if card.rank == 'Ace':
                 num_aces += 1
 
         # Handle aces to minimize busting
@@ -32,9 +34,15 @@ class Hand:
             value -= 10
             num_aces -= 1
 
+        # Update bust and blackjack attributes
+        self.bust = value > 21
+        self.blackjack = value == 21 and len(self.cards) == 2
+
         return value
-    
-    def PlayerShow(self,screen,x,y):
-        self.cards[0].show(screen,x,y)
-        self.cards[1].show(screen,x+300,y)
+
+    def draw_card(self, deck):
+        card = deck.draw_card()
+        self.add_card(card)
+        self.get_value()
+        return card
 

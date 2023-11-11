@@ -2,42 +2,36 @@ from Card import Card
 from Deck import Deck
 from Hand import Hand
 
-cardBack = Card("Card","Back")
+cardBack = Card("Card", "Back")
 
 class Dealer:
-    def __init__(self,deck):
+    def __init__(self, deck):
         self.deck = deck
         self.hand = Hand()
-        self.bust = False
-        self.blackjack = False
-        self.stand = False
-    
-    def drawCard(self):
-        self.hand.add_card(self.deck.drawCard())
-        if self.hand.get_value() == 21:
-            self.blackjack = True
-        if self.hand.get_value() > 21:
-            self.bust = True
-        
-    def drawHand(self):
-        self.hand.clear()
-        self.bust = False
-        self.blackjack = False
-        self.stand = False
-        self.drawCard()
-        self.drawCard()
+        self.hidden = True  # Flag to determine if the second card is hidden
 
-    def show(self,screen):
+    def draw_card(self):
+        # Draw a card for the dealer
+        self.hand.draw_card(self.deck)
+
+    def draw_hand(self):
+        # Draw the initial two cards for the dealer
+        self.hand.clear()
+        self.hand.draw_card(self.deck)
+        self.hand.draw_card(self.deck)
+
+    def show(self, screen):
+        # Render dealer's cards on the screen
         numCards = len(self.hand.cards)
         screenWidth = 1920
         cardWidth = 500
-        screenGap = 1000
-        cardGap=100
-        scale = screenWidth/(2*screenGap+numCards*cardWidth+(numCards-1)*cardGap)
+        screenGap = 2 * cardWidth
+        cardGap = 0.2 * cardWidth
+        scale = screenWidth / (2 * screenGap + numCards * cardWidth + (numCards - 1) * cardGap)
         for i in range(numCards):
-            if numCards==2 and i ==1 and not self.stand:
-                cardBack.show(screen,screenGap*scale+i*(cardWidth+cardGap)*scale,0,scale)
-            else:    
-                self.hand.cards[i].show(screen,screenGap*scale+i*(cardWidth+cardGap)*scale,0,scale)
-
-        
+            if numCards == 2 and i == 1 and self.hidden:
+                # Render the back of the second card if it is hidden
+                cardBack.show(screen, screenGap * scale + i * (cardWidth + cardGap) * scale, 0, scale)
+            else:
+                # Render the visible cards
+                self.hand.cards[i].show(screen, screenGap * scale + i * (cardWidth + cardGap) * scale, 0, scale)
