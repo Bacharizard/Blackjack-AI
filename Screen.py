@@ -81,8 +81,8 @@ while True:
                 # Draw a card only if cards have been dealt
                 if cards_dealt:
                     player.draw_card()
-                    # If the player busts or has a blackjack, move to the next hand
-                    if player.getHand().bust or player.getHand().blackjack:
+                    # If the player busts or has 21, move to the next hand
+                    if player.getHand().bust or player.getHand().get_value() == 21:
                         player.pointer -= 1
 
             # Check if the Stand button is clicked
