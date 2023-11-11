@@ -15,10 +15,15 @@ class Player:
     def getHand(self):
         return self.hands[self.pointer]
     
-    def getBet(self):
+    def reset_bets(self):
+        self.bets = [0]
+        self.pointer = 0
+
+    
+    def get_bet(self):
         return self.bets[self.pointer]
     
-    def setBet(self, bet):
+    def set_bet(self, bet):
         self.bets[self.pointer] = bet
     
     def draw_card(self):
@@ -29,8 +34,6 @@ class Player:
         self.hands = [Hand()]
         self.getHand().draw_card(self.deck)
         self.getHand().draw_card(self.deck)
-        self.bets = [1]  # Initialize bet for the new hand
-        self.money -= 1
         self.pointer = 0
 
 
@@ -38,8 +41,8 @@ class Player:
         # Split the current hand into two hands
         self.hands.append(Hand())
         self.hands[self.pointer + 1].add_card(self.getHand().cards.pop())
-        self.bets.append(self.getBet())  # Set the bet for the new hand
-        self.money -= self.getBet()
+        self.bets.append(self.get_bet())  # Set the bet for the new hand
+        self.money -= self.get_bet()
         self.pointer += 1
 
     def update_balance(self, dealer):
@@ -54,8 +57,7 @@ class Player:
                     self.money += 2.5 * self.bets[i]
                 elif self.hands[i].get_value() > dealer.hand.get_value():
                     self.money += 2 * self.bets[i]
-                    
-        self.bets = [0]  # Reset bets after updating balance
+        self.reset_bets()
 
     def show(self, screen):
         # Render player's cards on the screen

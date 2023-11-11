@@ -1,4 +1,5 @@
 import pygame
+import time
 from Card import Card
 from Deck import Deck
 from Hand import Hand
@@ -6,6 +7,7 @@ from Dealer import Dealer
 from Player import Player
 
 TIME = 850  # Time in milliseconds to delay between actions
+clock = pygame.time.Clock()
 
 # Initialize Pygame
 pygame.init()
@@ -43,6 +45,11 @@ yellow = (255, 255, 0)
 # Boolean to track whether the cards have been dealt
 cards_dealt = False
 
+# Text input
+bet_text = ""
+bet_active = True  # Flag to track if the text input for bet is active
+
+
 # Main game loop
 while True:
     for event in pygame.event.get():
@@ -57,7 +64,8 @@ while True:
             # Check if the Deal button is clicked
             if deal_button.collidepoint(mouse_x, mouse_y):
                 # Deal cards only if not already dealt
-                if not cards_dealt:
+                if not cards_dealt and not bet_active and bet_text != "":
+                    player.money -= player.get_bet()  # Deduct the bet from the player's money
                     dealer.hidden = True
                     # Draw the dealer's hand
                     dealer.draw_hand()
@@ -86,9 +94,9 @@ while True:
             # Check if the Double Down button is clicked
             if double_down_button.collidepoint(mouse_x, mouse_y):
                 # Double the bet and draw a card only if cards have been dealt and the player has enough money
-                if cards_dealt and len(player.getHand().cards) == 2 and player.money >= player.getBet():
-                    player.money -= player.getBet()
-                    player.setBet(2 * player.getBet())
+                if cards_dealt and len(player.getHand().cards) == 2 and player.money >= player.get_bet():
+                    player.money -= player.get_bet()
+                    player.set_bet(2 * player.get_bet())
                     player.draw_card()
                     dd = True
                     player.pointer -= 1
@@ -99,15 +107,28 @@ while True:
                 if cards_dealt and len(player.getHand().cards) == 2 and player.getHand().cards[0].rank == player.getHand().cards[1].rank:
                     player.split()
 
+        # Check for text input events while the Bet button is active
+        if event.type == pygame.KEYDOWN and bet_active:
+            if event.key == pygame.K_RETURN:
+                bet_amount = int(bet_text)
+                if bet_amount > 0 and bet_amount <= player.money:
+                    player.set_bet(bet_amount)
+                    bet_active = False  # Deactivate text input after pressing Enter
+            elif event.key == pygame.K_BACKSPACE:
+                bet_text = bet_text[:-1]
+            # Only allow numbers to be entered
+            elif event.unicode.isdigit():
+                bet_text += event.unicode
 
-     # Clear the screen
+    # Clear the screen
     screen.fill(green_cloth)
 
-    # Render dealer's cards
-    dealer.show(screen)
 
-    # Render player's cards
-    player.show(screen)
+    if cards_dealt:
+        # Render dealer's cards
+        dealer.show(screen)
+        # Render player's cards
+        player.show(screen)
 
     # Draw buttons
     pygame.draw.rect(screen, white, deal_button)
@@ -130,7 +151,7 @@ while True:
 
     # Left Button labels
     money_text = font.render(f"Money: {player.money}", True, black)
-    bet_text = font.render(f"Bet: {player.bets}", True, black)
+    bet_label_text = font.render(f"Bets: {bet_text}", True, black)
     insurance_text = font.render("Insurance", True, black)
 
     # Draw right button labels
@@ -142,27 +163,39 @@ while True:
 
     # Draw left button labels
     screen.blit(money_text, (money_button.x + 10, money_button.y + 10))
-    screen.blit(bet_text, (bet_button.x + 10, bet_button.y + 10))
+    if bet_active:
+        # Render blinking cursor when text input is active
+        if time.time() % 1 < 0.5:
+            pygame.draw.rect(screen, black, (bet_button.x + 10 + font.size(f"Bets: {bet_text}")[0], bet_button.y + 10, 2, 20))
+        bet_label_text = font.render(f"Bets: {bet_text}", True, black)
+    screen.blit(bet_label_text, (bet_button.x + 10, bet_button.y + 10))
     screen.blit(insurance_text, (insurance_button.x + 10, insurance_button.y + 10))
 
     pygame.display.flip()
-            
+    clock.tick(60)
+
+
     # If has one card in his hand, draw another card (happens after split)        
     if cards_dealt and len(player.getHand().cards) == 1:
         player.draw_card()
         pygame.time.delay(TIME)
 
     # If the player has no more hands, move to the dealer
-    if cards_dealt and player.pointer==-1:
+    if cards_dealt and player.pointer == -1:
         # Reveal the dealer's hidden card
         if dealer.hidden:
             dealer.hidden = False
         else:
             # Dealer draws cards until he has 17 or more
-            if dealer.hand.get_value() < 17 :
+            if dealer.hand.get_value() < 17:
                 dealer.draw_card()
                 pygame.time.delay(TIME)
             # When the dealer has 17 or more, the balance is updated 
             else:
                 player.update_balance(dealer)
                 cards_dealt = False
+                bet_text = ""
+                bet_label_text = font.render(f"Bets: ", True, black)
+                bet_active = True
+                pygame.time.delay(2*TIME)
+
