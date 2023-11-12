@@ -73,6 +73,10 @@ while True:
                     # Draw the player's hand
                     player.draw_hand()
 
+                    # Check for blackjack
+                    if player.getHand().blackjack:
+                        player.pointer -= 1
+
                     # Update the flag to indicate that cards have been dealt
                     cards_dealt = True
 
