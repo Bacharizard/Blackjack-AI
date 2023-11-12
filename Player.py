@@ -11,6 +11,7 @@ class Player:
         self.hands = [Hand()]  # Initialize with one hand
         self.bets = [0]  # List to store bets corresponding to each hand
         self.money = 1000
+        self.insurance = False
     
     def getHand(self):
         return self.hands[self.pointer]
@@ -18,6 +19,7 @@ class Player:
     def reset_bets(self):
         self.bets = [0]
         self.pointer = 0
+        self.insurance = False
 
     
     def get_bet(self):
@@ -57,6 +59,10 @@ class Player:
                     self.money += 2.5 * self.bets[i]
                 elif self.hands[i].get_value() > dealer.hand.get_value():
                     self.money += 2 * self.bets[i]
+
+        # Pay insurance if the dealer has blackjack
+        if dealer.hand.blackjack and self.insurance:
+            self.money += 2 * self.bets[0]
         self.reset_bets()
 
     def show(self, screen):

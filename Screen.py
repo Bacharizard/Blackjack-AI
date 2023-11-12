@@ -101,6 +101,13 @@ while True:
                     dd = True
                     player.pointer -= 1
 
+            # Check if the Insurance button is clicked
+            if insurance_button.collidepoint(mouse_x, mouse_y):
+                # Pay insurance only if the dealer reaveled card is an Ace and the player has enough money
+                if not player.insurance and cards_dealt and dealer.hand.cards[1].rank == "Ace" and player.money >= player.get_bet() / 2:
+                    player.money -= player.get_bet() / 2
+                    player.insurance = True
+
             # Check if the Split button is clicked
             if split_button.collidepoint(mouse_x, mouse_y):
                 # Split the hand only if cards have been dealt and the player has enough money
@@ -178,6 +185,8 @@ while True:
     # If has one card in his hand, draw another card (happens after split)        
     if cards_dealt and len(player.getHand().cards) == 1:
         player.draw_card()
+        if player.getHand().get_value() == 21:
+            player.pointer -= 1
         pygame.time.delay(TIME)
 
     # If the player has no more hands, move to the dealer
