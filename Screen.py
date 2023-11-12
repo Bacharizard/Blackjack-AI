@@ -114,8 +114,8 @@ while True:
 
             # Check if the Split button is clicked
             if split_button.collidepoint(mouse_x, mouse_y):
-                # Split the hand only if cards have been dealt and the player has enough money
-                if cards_dealt and len(player.getHand().cards) == 2 and player.getHand().cards[0].rank == player.getHand().cards[1].rank:
+                # Split the hand only if he has two cards of the same rank and the player has enough money
+                if player.money >= player.get_bet() and len(player.getHand().cards) == 2 and player.getHand().cards[0].rank == player.getHand().cards[1].rank:
                     player.split()
 
         # Check for text input events while the Bet button is active
