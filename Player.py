@@ -85,13 +85,13 @@ class Player:
                     self.hands[i].cards[j].show(screen, handScale * (screenGap + i * (handWidth + handGap)) + (3 / 4) * j * cardWidth * scale, 
                                                 screenHeight - cardHeight * (1 + (3 / 4) * j) * scale, scale)
 
-    def get_neural_input(self, dealer_card, true_count):
+    def get_neural_input(self, dealer_card):
         # Create the input vector for the neural network
         money_input = self.money / 1000.0  # Normalize money to the range [0, 100]
         card1_input = self.hands[self.pointer].cards[0].get_value() / 11.0  # Normalize card value to the range [0, 1]
         card2_input = self.hands[self.pointer].cards[1].get_value() / 11.0 if len(self.hands[self.pointer].cards) > 1 else 0.0
         dealer_card_input = dealer_card.get_value() / 11.0  # Normalize dealer card value to the range [0, 1]
-        true_count_input = true_count / 32.5  # Normalize true count to the range [0, 1]
+        true_count_input = self.deck.get_true_count() / 32.5  # Normalize true count to the range [0, 1]
 
         return [money_input, card1_input, card2_input, dealer_card_input, true_count_input]
 
