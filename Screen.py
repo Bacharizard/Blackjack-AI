@@ -5,6 +5,7 @@ from Deck import Deck
 from Hand import Hand
 from Dealer import Dealer
 from Player import Player
+from NeuralNetwork import NeuralNetwork  
 
 TIME = 850  # Time in milliseconds to delay between actions
 clock = pygame.time.Clock()
@@ -18,6 +19,7 @@ pygame.display.set_caption("Blackjack Game")
 deck = Deck()
 dealer = Dealer(deck)
 player = Player("Player", deck)
+neural_network = NeuralNetwork(input_size=5, output_size=6)  # Adjust input and output sizes
 
 # Create buttons
 font = pygame.font.Font(None, 36)
@@ -31,16 +33,16 @@ stand_button = pygame.Rect(1650, 1000 - 2 * (button_height + button_spacing), bu
 double_down_button = pygame.Rect(1650, 1000 - (button_height + button_spacing), button_width, button_height)
 split_button = pygame.Rect(1650, 1000, button_width, button_height)
 
-# Additional buttons for Money, Bet, and Insurance
+# Additional buttons for Money, Bet, Insurance, and Train
 money_button = pygame.Rect(100, 1000 - 2 * (button_height + button_spacing), button_width, button_height)
 bet_button = pygame.Rect(100, 1000 - (button_height + button_spacing), button_width, button_height)
 insurance_button = pygame.Rect(100, 1000, button_width, button_height)
+train_button = pygame.Rect(10, 10, 100, 40)  # Train button position and size
 
 # Colors
 black = (0, 0, 0)
 white = (255, 255, 255)
 green_cloth = (0, 153, 76)
-yellow = (255, 255, 0)
 
 # Boolean to track whether the cards have been dealt
 cards_dealt = False
@@ -48,6 +50,12 @@ cards_dealt = False
 # Text input
 bet_text = ""
 bet_active = True  # Flag to track if the text input for bet is active
+
+# Generation
+current_generation = 1
+
+# Train button state
+train_button_active = False
 
 
 # Main game loop
@@ -60,6 +68,23 @@ while True:
         # Check for button press events
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = pygame.mouse.get_pos()
+
+            # Check if the Train button is clicked
+            if train_button.collidepoint(mouse_x, mouse_y) and not cards_dealt:
+                train_button_active = not train_button_active
+                if train_button_active:
+                    # Code to start training
+                    print("Training started...")
+                    # You should implement your training logic here
+                    # Update the neural network weights based on the game outcomes
+                    # After training, set train_button_active to False
+                    train_button_active = False
+                    print("Training completed.")
+
+            # Check if the deck needs to be rebuilt and shuffled
+            if not cards_dealt and len(deck.cards)<52:
+                deck.build()
+                deck.shuffle()
 
             # Check if the Deal button is clicked
             if deal_button.collidepoint(mouse_x, mouse_y):
@@ -134,7 +159,6 @@ while True:
     # Clear the screen
     screen.fill(green_cloth)
 
-
     if cards_dealt:
         # Render dealer's cards
         dealer.show(screen)
@@ -148,39 +172,44 @@ while True:
     pygame.draw.rect(screen, white, double_down_button)
     pygame.draw.rect(screen, white, split_button)
 
-    # Draw additional buttons for Money, Bet, and Insurance
+    # Draw additional buttons for Money, Bet,Insurance and Train
     pygame.draw.rect(screen, white, money_button)
     pygame.draw.rect(screen, white, bet_button)
     pygame.draw.rect(screen, white, insurance_button)
+    pygame.draw.rect(screen, white, train_button)
 
-    # Right Button labels
+    # Button labels
     deal_text = font.render("Deal", True, black)
     hit_text = font.render("Hit", True, black)
     stand_text = font.render("Stand", True, black)
     double_down_text = font.render("Double Down", True, black)
     split_text = font.render("Split", True, black)
-
-    # Left Button labels
     money_text = font.render(f"Money: {player.money}", True, black)
     bet_label_text = font.render(f"Bets: {bet_text}", True, black)
     insurance_text = font.render("Insurance", True, black)
 
-    # Draw right button labels
+    # Draw button labels
     screen.blit(deal_text, (deal_button.x + 10, deal_button.y + 10))
     screen.blit(hit_text, (hit_button.x + 10, hit_button.y + 10))
     screen.blit(stand_text, (stand_button.x + 10, stand_button.y + 10))
     screen.blit(double_down_text, (double_down_button.x + 10, double_down_button.y + 10))
     screen.blit(split_text, (split_button.x + 10, split_button.y + 10))
-
-    # Draw left button labels
     screen.blit(money_text, (money_button.x + 10, money_button.y + 10))
+    screen.blit(bet_label_text, (bet_button.x + 10, bet_button.y + 10))
+    screen.blit(insurance_text, (insurance_button.x + 10, insurance_button.y + 10))
+
+    if train_button_active:
+          generation_label_text = font.render(f"Generation: {current_generation}", True, black)
+          screen.blit(generation_label_text, (10, 10)) 
+    else:
+        train_text = font.render("Train", True, black)
+        screen.blit(train_text, (train_button.x + 10, train_button.y + 10))
+
     if bet_active:
         # Render blinking cursor when text input is active
         if time.time() % 1 < 0.5:
             pygame.draw.rect(screen, black, (bet_button.x + 10 + font.size(f"Bets: {bet_text}")[0], bet_button.y + 10, 2, 20))
         bet_label_text = font.render(f"Bets: {bet_text}", True, black)
-    screen.blit(bet_label_text, (bet_button.x + 10, bet_button.y + 10))
-    screen.blit(insurance_text, (insurance_button.x + 10, insurance_button.y + 10))
 
     pygame.display.flip()
     clock.tick(60)
