@@ -24,7 +24,7 @@ class Agent (Player):
     
     def action(self):
         X = np.array([self.getHand()[0].get_value(), self.getHand()[1].get_value() , self.dealer.hand.cards[1].get_value(), self.deck.get_true_count()])
-        action = np.argmax(nn.forward(X)[0:4])
+        action = np.argmax(self.nn.forward(X)[0:4])
         if action == 0:
             gl.hit(self)
         elif action == 1:
