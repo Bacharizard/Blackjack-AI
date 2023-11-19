@@ -4,3 +4,5 @@ __pycache__/Deck.cpython-39.pyc
 __pycache__/Hand.cpython-39.pyc
 __pycache__/Player.cpython-39.pyc
 __pycache__/NeuralNetwork.cpython-39.pyc
+__pycache__/GameLogic.cpython-39.pyc
+__pycache__/Population.cpython-39.pyc

@@ -25,10 +25,11 @@ class Deck:
 
     def draw_card(self):
         card = self.cards.pop()
-        if card.value in {"10", "Jack", "Queen", "King", "Ace"}:
+        if card.get_value() in {"10", "Jack", "Queen", "King", "Ace"}:
             self.count -= 1
-        elif card.value in {"2", "3", "4", "5", "6"}:
+        elif card.get_value() in {"2", "3", "4", "5", "6"}:
             self.count += 1
+        return card
 
     def get_true_count(self):
         return self.count / (len(self.cards) / 52)

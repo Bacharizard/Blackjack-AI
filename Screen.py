@@ -6,6 +6,8 @@ from Hand import Hand
 from Dealer import Dealer
 from Player import Player
 from NeuralNetwork import NeuralNetwork  
+from Population import Population
+from GameLogic import GameLogic
 
 TIME = 850  # Time in milliseconds to delay between actions
 clock = pygame.time.Clock()
@@ -19,7 +21,7 @@ pygame.display.set_caption("Blackjack Game")
 deck = Deck()
 dealer = Dealer(deck)
 player = Player("Player", deck)
-neural_network = NeuralNetwork(input_size=5, output_size=6)  # Adjust input and output sizes
+gl = GameLogic(deck, dealer, player)
 
 # Create buttons
 font = pygame.font.Font(None, 36)
@@ -81,54 +83,33 @@ while True:
                     train_button_active = False
                     print("Training completed.")
 
-            # Check if the deck needs to be rebuilt and shuffled
-            if not cards_dealt and len(deck.cards)<52:
-                deck.build()
-                deck.shuffle()
 
             # Check if the Deal button is clicked
             if deal_button.collidepoint(mouse_x, mouse_y):
                 # Deal cards only if not already dealt
                 if not cards_dealt and not bet_active and bet_text != "":
-                    player.money -= player.get_bet()  # Deduct the bet from the player's money
-                    dealer.hidden = True
-                    # Draw the dealer's hand
-                    dealer.draw_hand()
-
-                    # Draw the player's hand
-                    player.draw_hand()
-
-                    # Check for blackjack
-                    if player.getHand().blackjack:
-                        player.pointer -= 1
-
+                    gl.deal()
                     # Update the flag to indicate that cards have been dealt
                     cards_dealt = True
+                    dealer.hidden = True  # Hide the dealer's second card
 
             # Check if the Hit button is clicked
             if hit_button.collidepoint(mouse_x, mouse_y):
                 # Draw a card only if cards have been dealt
                 if cards_dealt:
-                    player.draw_card()
-                    # If the player busts or has 21, move to the next hand
-                    if player.getHand().bust or player.getHand().get_value() == 21:
-                        player.pointer -= 1
-
+                   gl.hit()
+                
             # Check if the Stand button is clicked
             if stand_button.collidepoint(mouse_x, mouse_y):
                 # Move to the next hand only if cards have been dealt
                 if cards_dealt:
-                    player.pointer -= 1
+                    gl.stand()
 
             # Check if the Double Down button is clicked
             if double_down_button.collidepoint(mouse_x, mouse_y):
                 # Double the bet and draw a card only if cards have been dealt and the player has enough money
-                if cards_dealt and len(player.getHand().cards) == 2 and player.money >= player.get_bet():
-                    player.money -= player.get_bet()
-                    player.set_bet(2 * player.get_bet())
-                    player.draw_card()
-                    dd = True
-                    player.pointer -= 1
+                if cards_dealt:
+                    gl.double_down()
 
             # Check if the Insurance button is clicked
             if insurance_button.collidepoint(mouse_x, mouse_y):
@@ -141,7 +122,7 @@ while True:
             if split_button.collidepoint(mouse_x, mouse_y):
                 # Split the hand only if he has two cards of the same rank and the player has enough money
                 if player.money >= player.get_bet() and len(player.getHand().cards) == 2 and player.getHand().cards[0].get_value() == player.getHand().cards[1].get_value():
-                    player.split()
+                    gl.split()
 
         # Check for text input events while the Bet button is active
         if event.type == pygame.KEYDOWN and bet_active:
@@ -214,30 +195,14 @@ while True:
     pygame.display.flip()
     clock.tick(60)
 
-
-    # If has one card in his hand, draw another card (happens after split)        
-    if cards_dealt and len(player.getHand().cards) == 1:
-        player.draw_card()
-        if player.getHand().get_value() == 21:
-            player.pointer -= 1
-        pygame.time.delay(TIME)
-
-    # If the player has no more hands, move to the dealer
-    if cards_dealt and player.pointer == -1:
-        # Reveal the dealer's hidden card
-        if dealer.hidden:
-            dealer.hidden = False
-        else:
-            # Dealer draws cards until he has 17 or more
-            if dealer.hand.get_value() < 17:
-                dealer.draw_card()
-                pygame.time.delay(TIME)
-            # When the dealer has 17 or more, the balance is updated 
-            else:
-                player.update_balance(dealer)
+    if cards_dealt:
+            # If there was action on the current hand, delay 
+            if gl.check_for_action():
+                pygame.time.delay(2*TIME)
+            # If the round is over, update
+            if gl.ended:
                 cards_dealt = False
                 bet_text = ""
                 bet_label_text = font.render(f"Bets: ", True, black)
                 bet_active = True
-                pygame.time.delay(2*TIME)
 
