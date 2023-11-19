@@ -4,7 +4,7 @@ import GameLogic as gl
 import numpy as np
 
 class Agent (Player):
-    def __init__(name,deck,dealer,nn):
+    def __init__(self,name,deck,dealer,nn):
         self.dealer = dealer
         self.nn = nn
         super().__init__(name,deck)
