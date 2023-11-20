@@ -29,9 +29,9 @@ class Dealer:
         cardGap = 0.2 * cardWidth
         scale = screenWidth / (2 * screenGap + numCards * cardWidth + (numCards - 1) * cardGap)
         for i in range(numCards):
-            if numCards == 2 and i == 0 and self.hidden:
+            if numCards == 2 and i == 1 and self.hidden:
                 # Render the back of the second card if it is hidden
-                cardBack.show(screen,screenWidth - scale* (screenGap + cardWidth + i * (cardWidth+cardGap)), 0, scale)
+                cardBack.show(screen,scale * (screenGap + cardWidth + cardGap), 0, scale)
             else:
                 # Render the visible cards
-                self.hand.cards[i].show(screen, screenWidth - scale* (screenGap + cardWidth + i * (cardWidth+cardGap)), 0, scale)
+                self.hand.cards[i].show(screen, scale * (screenGap + i * (cardWidth+cardGap)), 0, scale)

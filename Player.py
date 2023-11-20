@@ -38,15 +38,6 @@ class Player:
         self.getHand().draw_card(self.deck)
         self.pointer = 0
 
-
-    def split(self):
-        # Split the current hand into two hands
-        self.hands.insert(self.pointer+1,Hand())
-        self.hands[self.pointer+1].add_card(self.getHand().cards.pop())
-        self.bets.append(self.get_bet())  # Set the bet for the new hand
-        self.money -= self.get_bet()
-        self.pointer += 1
-
     def show(self, screen):
         # Render player's cards on the screen
         if len(self.hands) != 0:

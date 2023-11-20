@@ -45,4 +45,10 @@ class Hand:
         self.add_card(card)
         self.get_value()
         return card
-
+    
+    def __str__(self):
+        s = "["
+        for card in self.cards:
+            s += str(card) + ", "
+        s += "]"
+        return s

@@ -121,7 +121,6 @@ while True:
             # Check if the Split button is clicked
             if split_button.collidepoint(mouse_x, mouse_y):
                 # Split the hand only if he has two cards of the same rank and the player has enough money
-                if player.money >= player.get_bet() and len(player.getHand().cards) == 2 and player.getHand().cards[0].get_value() == player.getHand().cards[1].get_value():
                     gl.split()
 
         # Check for text input events while the Bet button is active
@@ -196,13 +195,15 @@ while True:
     clock.tick(60)
 
     if cards_dealt:
-            # If there was action on the current hand, delay 
-            if gl.check_for_action():
-                pygame.time.delay(2*TIME)
-            # If the round is over, update
-            if gl.ended:
-                cards_dealt = False
-                bet_text = ""
-                bet_label_text = font.render(f"Bets: ", True, black)
-                bet_active = True
+        # Check if the current hand is over
+        if gl.ended:
+            cards_dealt = False
+            bet_text = ""
+            bet_label_text = font.render(f"Bets: ", True, black)
+            bet_active = True
 
+        elif player.pointer == -1 and dealer.hidden:
+            dealer.hidden = False
+        # If there was action on the current hand, delay 
+        elif gl.check_for_action():
+            pygame.time.delay(2*TIME)
