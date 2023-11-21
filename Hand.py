@@ -39,7 +39,26 @@ class Hand:
         self.blackjack = value == 21 and len(self.cards) == 2
 
         return value
+    
+    def get_soft_value(self):
+        value = 0
+        num_aces = 0
+        
+        for card in self.cards:
+            value += card.get_value()
+            
+            # Check for aces and count them separately
+            if card.rank == 'Ace':
+                num_aces += 1
+        
+        if(num_aces == 0):
+            return 0
+        
+        for i in range(num_aces):
+            value-=10
 
+        return value
+    
     def draw_card(self, deck):
         card = deck.draw_card()
         self.add_card(card)

@@ -10,11 +10,9 @@ class GameLogic:
         self.dealer = dealer
         self.player = player
         self.ended = True
-        self.dd = False
 
     def deal(self):
         self.ended = False
-        self.dd = False
         self.player.money -= self.player.get_bet()  # Deduct the bet from the self.player's money
         # Draw the dealer's hand
         self.dealer.draw_hand()
@@ -23,9 +21,10 @@ class GameLogic:
         # Check for blackjack
         if self.player.getHand().blackjack:
             self.player.pointer -= 1
+        self.dealer.hidden = True  # Hide the dealer's second card
 
     def can_play(self):
-        return self.player.pointer > -1 and not self.player.getHand().bust and self.player.getHand().get_value() != 21 and not self.dd
+        return self.player.pointer > -1 and not self.player.getHand().bust and self.player.getHand().get_value() != 21
     
     def hit(self):
         if self.can_play():
@@ -48,7 +47,6 @@ class GameLogic:
             self.player.set_bet(2 * self.player.get_bet())
             self.player.draw_card()
             self.player.pointer -= 1
-            self.dd = True
 
     def can_split(self):
         return self.player.money >= self.player.get_bet() and len(self.player.getHand().cards) == 2 and self.player.getHand().cards[0].get_value() == self.player.getHand().cards[1].get_value()
@@ -87,14 +85,16 @@ class GameLogic:
 
     def check_for_action(self):
         # If the player can't play anymore, move on   
-        if self.player.pointer == -1:  
-            if self.dealer.hand.get_value() < 17:
+        if self.player.pointer == -1:
+            if self.dealer.hidden:
+                self.dealer.hidden = False  
+            elif self.dealer.hand.get_value() < 17:
                 self.dealer.draw_card()
                 return True
             else:
                 self.update_balance()
                 # Check if the deck needs to be rebuilt and shuffled
-                if len(self.deck.cards)<52:
+                if len(self.deck.cards)<104:
                     self.deck.build()
                     self.deck.shuffle()
                 self.ended = True

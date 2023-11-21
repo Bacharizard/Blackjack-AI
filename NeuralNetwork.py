@@ -24,8 +24,9 @@ class NeuralNetwork:
         o = self.sigmoid(self.z3)
         return o
     
-    def mutate(self, rate):
+    def mutate(self):
         # Mutate the weights and biases
+        rate = np.random.uniform(-1, 1)
         self.W1 += np.random.randn(self.input_size, self.hidden_size) * rate
         self.B1 += np.random.randn(self.hidden_size) * rate
         self.W2 += np.random.randn(self.hidden_size, self.output_size) * rate

@@ -17,12 +17,6 @@ pygame.init()
 screen = pygame.display.set_mode((1920, 1080))  # Adjust the size as needed
 pygame.display.set_caption("Blackjack Game")
 
-# Create game objects
-deck = Deck()
-dealer = Dealer(deck)
-player = Player("Player", deck)
-gl = GameLogic(deck, dealer, player)
-
 # Create buttons
 font = pygame.font.Font(None, 36)
 button_width, button_height = 170, 40
@@ -35,19 +29,20 @@ stand_button = pygame.Rect(1650, 1000 - 2 * (button_height + button_spacing), bu
 double_down_button = pygame.Rect(1650, 1000 - (button_height + button_spacing), button_width, button_height)
 split_button = pygame.Rect(1650, 1000, button_width, button_height)
 
-# Additional buttons for Money, Bet, Insurance, and Train
+# Additional buttons for Money, Bet, Insurance, and Test/Stop
 money_button = pygame.Rect(100, 1000 - 2 * (button_height + button_spacing), button_width, button_height)
 bet_button = pygame.Rect(100, 1000 - (button_height + button_spacing), button_width, button_height)
 insurance_button = pygame.Rect(100, 1000, button_width, button_height)
-train_button = pygame.Rect(10, 10, 100, 40)  # Train button position and size
+minus_button = pygame.Rect(40,50,40,40)
+plus_button = pygame.Rect(90,50,40,40)
+test_stop_button = pygame.Rect(35, 100, 100, 40)  # Test/Stop button position and size
 
 # Colors
 black = (0, 0, 0)
 white = (255, 255, 255)
 green_cloth = (0, 153, 76)
-
-# Boolean to track whether the cards have been dealt
-cards_dealt = False
+red = (255, 0, 0)
+green = (0, 255, 0)
 
 # Text input
 bet_text = ""
@@ -56,8 +51,17 @@ bet_active = True  # Flag to track if the text input for bet is active
 # Generation
 current_generation = 1
 
-# Train button state
-train_button_active = False
+# Test/Stop button state
+test_stop_button_active = False
+
+# Create game objects
+deck = Deck()
+dealer = Dealer(deck)
+player = Player("Player", deck)
+gl = GameLogic(deck, dealer, player)
+
+# Create population
+pop = Population()
 
 
 # Main game loop
@@ -66,65 +70,64 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             quit()
-
+        
         # Check for button press events
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = pygame.mouse.get_pos()
 
-            # Check if the Train button is clicked
-            if train_button.collidepoint(mouse_x, mouse_y) and not cards_dealt:
-                train_button_active = not train_button_active
-                if train_button_active:
-                    # Code to start training
-                    print("Training started...")
-                    # You should implement your training logic here
-                    # Update the neural network weights based on the game outcomes
-                    # After training, set train_button_active to False
-                    train_button_active = False
-                    print("Training completed.")
-
-
-            # Check if the Deal button is clicked
-            if deal_button.collidepoint(mouse_x, mouse_y):
-                # Deal cards only if not already dealt
-                if not cards_dealt and not bet_active and bet_text != "":
-                    gl.deal()
-                    # Update the flag to indicate that cards have been dealt
-                    cards_dealt = True
-                    dealer.hidden = True  # Hide the dealer's second card
-
-            # Check if the Hit button is clicked
-            if hit_button.collidepoint(mouse_x, mouse_y):
-                # Draw a card only if cards have been dealt
-                if cards_dealt:
-                   gl.hit()
+            # Check if the Test/Stop button is clicked
+            if test_stop_button.collidepoint(mouse_x, mouse_y):
+                if test_stop_button_active:
+                    deck = Deck()
+                    dealer = Dealer(deck)
+                    player = Player("Player", deck)
+                    gl = GameLogic(deck, dealer, player)
+                else:
+                    tester = pop.best_agent
+                    tester.hands_played = 0
+                    tester.money = 1000
+                    gl = tester.gl
+                test_stop_button_active = not test_stop_button_active
                 
-            # Check if the Stand button is clicked
-            if stand_button.collidepoint(mouse_x, mouse_y):
-                # Move to the next hand only if cards have been dealt
-                if cards_dealt:
-                    gl.stand()
+            else:
+                # Check if the Deal button is clicked
+                if deal_button.collidepoint(mouse_x, mouse_y):
+                    # Deal cards only if not already dealt
+                    if gl.ended and not bet_active and bet_text != "":
+                        gl.deal()
 
-            # Check if the Double Down button is clicked
-            if double_down_button.collidepoint(mouse_x, mouse_y):
-                # Double the bet and draw a card only if cards have been dealt and the player has enough money
-                if cards_dealt:
-                    gl.double_down()
+                # Check if the Hit button is clicked
+                if hit_button.collidepoint(mouse_x, mouse_y):
+                    # Draw a card only if cards have been dealt
+                    if not gl.ended:
+                        gl.hit()
+                    
+                # Check if the Stand button is clicked
+                if stand_button.collidepoint(mouse_x, mouse_y):
+                    # Move to the next hand only if cards have been dealt
+                    if not gl.ended:
+                        gl.stand()
 
-            # Check if the Insurance button is clicked
-            if insurance_button.collidepoint(mouse_x, mouse_y):
-                # Pay insurance only if the dealer reaveled card is an Ace and the player has enough money
-                if not player.insurance and cards_dealt and dealer.hand.cards[1].rank == "Ace" and player.money >= player.get_bet() / 2:
-                    player.money -= player.get_bet() / 2
-                    player.insurance = True
+                # Check if the Double Down button is clicked
+                if double_down_button.collidepoint(mouse_x, mouse_y):
+                    # Double the bet and draw a card only if cards have been dealt and the player has enough money
+                    if not gl.ended:
+                        gl.double_down()
 
-            # Check if the Split button is clicked
-            if split_button.collidepoint(mouse_x, mouse_y):
-                # Split the hand only if he has two cards of the same rank and the player has enough money
-                    gl.split()
+                # Check if the Insurance button is clicked
+                if insurance_button.collidepoint(mouse_x, mouse_y):
+                    # Pay insurance only if the dealer reaveled card is an Ace and the player has enough money
+                    if not gl.ended:
+                        gl.insurance()
+
+                # Check if the Split button is clicked
+                if split_button.collidepoint(mouse_x, mouse_y):
+                    # Split the hand only if he has two cards of the same rank and the player has enough money
+                        gl.split()
+
 
         # Check for text input events while the Bet button is active
-        if event.type == pygame.KEYDOWN and bet_active:
+        if event.type == pygame.KEYDOWN and bet_active and not test_stop_button_active:
             if event.key == pygame.K_RETURN:
                 bet_amount = int(bet_text)
                 if bet_amount > 0 and bet_amount <= player.money:
@@ -136,14 +139,24 @@ while True:
             elif event.unicode.isdigit():
                 bet_text += event.unicode
 
+    if test_stop_button_active:
+        if(gl.ended):
+            if tester.money>= 1:
+                tester.decide_bet()
+                gl.deal()
+                tester.should_insure()
+        else:
+            if gl.can_play():
+                tester.action()
+
     # Clear the screen
     screen.fill(green_cloth)
 
-    if cards_dealt:
+    if not gl.ended:
         # Render dealer's cards
-        dealer.show(screen)
+        gl.dealer.show(screen)
         # Render player's cards
-        player.show(screen)
+        gl.player.show(screen)
 
     # Draw buttons
     pygame.draw.rect(screen, white, deal_button)
@@ -151,12 +164,12 @@ while True:
     pygame.draw.rect(screen, white, stand_button)
     pygame.draw.rect(screen, white, double_down_button)
     pygame.draw.rect(screen, white, split_button)
-
-    # Draw additional buttons for Money, Bet,Insurance and Train
     pygame.draw.rect(screen, white, money_button)
     pygame.draw.rect(screen, white, bet_button)
     pygame.draw.rect(screen, white, insurance_button)
-    pygame.draw.rect(screen, white, train_button)
+    pygame.draw.rect(screen, black, minus_button)
+    pygame.draw.rect(screen, black, plus_button)
+    pygame.draw.rect(screen, black, test_stop_button)
 
     # Button labels
     deal_text = font.render("Deal", True, black)
@@ -164,9 +177,17 @@ while True:
     stand_text = font.render("Stand", True, black)
     double_down_text = font.render("Double Down", True, black)
     split_text = font.render("Split", True, black)
-    money_text = font.render(f"Money: {player.money}", True, black)
-    bet_label_text = font.render(f"Bets: {bet_text}", True, black)
+    money_text = font.render(f"Money: {tester.money if test_stop_button_active else player.money}", True, black)
+    bet_label_text = font.render(f"Bets: {tester.bets if test_stop_button_active else bet_text}", True, black)
     insurance_text = font.render("Insurance", True, black)
+    generation_label_text = font.render(f"Generation: {current_generation}", True, black)
+    minus_label_text = font.render("-", True, red)
+    plus_label_text = font.render("+", True, green)
+
+    if test_stop_button_active:
+        test_stop_text = font.render("Stop", True, red)
+    else:
+        test_stop_text = font.render("Test", True, green)
 
     # Draw button labels
     screen.blit(deal_text, (deal_button.x + 10, deal_button.y + 10))
@@ -177,33 +198,25 @@ while True:
     screen.blit(money_text, (money_button.x + 10, money_button.y + 10))
     screen.blit(bet_label_text, (bet_button.x + 10, bet_button.y + 10))
     screen.blit(insurance_text, (insurance_button.x + 10, insurance_button.y + 10))
+    screen.blit(generation_label_text, (10, 10)) 
+    screen.blit(test_stop_text, (test_stop_button.x + 10, test_stop_button.y + 10))
+    screen.blit(minus_label_text, (minus_button.x + 16, minus_button.y + 7))
+    screen.blit(plus_label_text, (plus_button.x + 12, plus_button.y + 5))
 
-    if train_button_active:
-          generation_label_text = font.render(f"Generation: {current_generation}", True, black)
-          screen.blit(generation_label_text, (10, 10)) 
-    else:
-        train_text = font.render("Train", True, black)
-        screen.blit(train_text, (train_button.x + 10, train_button.y + 10))
 
-    if bet_active:
+    if bet_active and not test_stop_button_active:
         # Render blinking cursor when text input is active
         if time.time() % 1 < 0.5:
             pygame.draw.rect(screen, black, (bet_button.x + 10 + font.size(f"Bets: {bet_text}")[0], bet_button.y + 10, 2, 20))
         bet_label_text = font.render(f"Bets: {bet_text}", True, black)
 
-    pygame.display.flip()
+    pygame.display.flip() 
     clock.tick(60)
+    pygame.time.delay(TIME)
 
-    if cards_dealt:
-        # Check if the current hand is over
+    # If there was action on the current hand, delay 
+    if gl.check_for_action():
         if gl.ended:
-            cards_dealt = False
             bet_text = ""
             bet_label_text = font.render(f"Bets: ", True, black)
             bet_active = True
-
-        elif player.pointer == -1 and dealer.hidden:
-            dealer.hidden = False
-        # If there was action on the current hand, delay 
-        elif gl.check_for_action():
-            pygame.time.delay(2*TIME)

@@ -12,7 +12,7 @@ class Deck:
         self.cards.clear()
         self.count = 0
         # Build a deck with four sets of cards (suits and ranks)
-        for times in range(6):
+        for times in range(8):
             for s in ["Clubs", "Diamonds", "Hearts", "Spades"]:
                 for v in {"2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack","Queen", "King", "Ace"}:
                     self.cards.append(Card(s, v))
