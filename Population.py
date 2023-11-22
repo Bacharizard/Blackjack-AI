@@ -25,7 +25,7 @@ class Population:
         for i in range(POPULATION_SIZE):
             deck = Deck()
             dealer = Dealer(deck)
-            self.population.append(Agent("Agent " + str(i),deck,dealer,NeuralNetwork(4, 5, 6)))
+            self.population.append(Agent(deck,dealer,NeuralNetwork(4, 8, 6)))
 
     def calculate_fitness(self):
         self.best_fitness = -1
@@ -41,27 +41,23 @@ class Population:
                 self.best_fitness = agent.fitness
                 self.best_agent = agent
 
-
-    def select_agents(self):
-        total_fitness = sum(agent.fitness for agent in self.population)
-        probabilities = [agent.fitness / total_fitness for agent in self.population]
-        self.selected_agents = random.choices(self.population, weights=probabilities, k=PARENTS_SELECTED)
+        
     
     def crossover_and_mutate(self):
-        for i in range(POPULATION_SIZE - PARENTS_SELECTED):
-            parent1 = random.choice(self.selected_agents)
-            parent2 = random.choice(self.selected_agents)
+        parents = self.population[:PARENTS_SELECTED]
+        for i in range(PARENTS_SELECTED,POPULATION_SIZE-PARENTS_SELECTED):
+            parent1 = random.choice(parents)
+            parent2 = random.choice(parents)
             child = parent1.crossover(parent2)
-            self.selected_agents.append(child)
+            self.population[i] = child
 
         for i in range(POPULATION_SIZE):
             r = random.random()
             if r < MUTATION_RATE:
-                self.selected_agents[i].mutate()
-        self.population = self.selected_agents
+                self.population[i].mutate()
 
     def next_gen(self):
         self.calculate_fitness()
-        self.select_agents()
+        self.population.sort(key=lambda x: x.fitness, reverse=True)
         self.crossover_and_mutate()
         self.generation += 1

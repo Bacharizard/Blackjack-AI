@@ -10,16 +10,16 @@ import math
 
 
 class Agent (Player):
-    def __init__(self,name,deck,dealer,nn):
+    def __init__(self,deck,dealer,nn):
         self.dealer = dealer
         self.nn = nn
         self.gl = GameLogic(deck,dealer,self)
         self.hands_played = 0
         self.fitness = 0
-        super().__init__(name,deck)
+        super().__init__(deck)
     
     def decide_bet(self):
-        X = np.array([0, 0, 0, self.deck.get_true_count()])
+        X = np.array([0, 0, 0, (self.deck.get_true_count()+2*52/11)/(4*52/11)])
         bet_rate = self.nn.forward(X)[5]
         bet = math.ceil(bet_rate * self.money)
         if(abs(self.money - bet) < 1):
@@ -27,7 +27,7 @@ class Agent (Player):
         self.set_bet(bet)
         
     def should_insure(self):
-        X = np.array([0, 0, 0, self.deck.get_true_count()])
+        X = np.array([0, 0, 0, (self.deck.get_true_count()+2*52/11)/(4*52/11)])
         res = self.nn.forward(X)[4]
         if res > 0.5:
            self.gl.insurance()
@@ -35,7 +35,7 @@ class Agent (Player):
         
     
     def action(self):
-        X = np.array([self.getHand().get_value(), self.getHand().get_soft_value() , self.dealer.hand.cards[0].get_value(), self.deck.get_true_count()])
+        X = np.array([(self.getHand().get_value()-4)/17, (self.getHand().get_soft_value()-2/19), self.dealer.hand.cards[0].get_value()/11, 0])
         outputs = self.nn.forward(X)
         if not self.gl.can_double_down():
             outputs[2] = -1
@@ -65,7 +65,7 @@ class Agent (Player):
         new_nn = self.nn.crossover(other.nn)
         new_deck = Deck()
         new_dealer = Dealer(new_deck)
-        return Agent("AI",new_deck,new_dealer,new_nn)
+        return Agent(new_deck,new_dealer,new_nn)
     
     def mutate(self):
        self.nn.mutate()

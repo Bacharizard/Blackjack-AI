@@ -54,110 +54,7 @@ current_generation = 1
 # Test/Stop button state
 test_stop_button_active = False
 
-# Create game objects
-deck = Deck()
-dealer = Dealer(deck)
-player = Player("Player", deck)
-gl = GameLogic(deck, dealer, player)
-
-# Create population
-pop = Population()
-
-
-# Main game loop
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            quit()
-        
-        # Check for button press events
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-
-            # Check if the Test/Stop button is clicked
-            if test_stop_button.collidepoint(mouse_x, mouse_y):
-                if test_stop_button_active:
-                    deck = Deck()
-                    dealer = Dealer(deck)
-                    player = Player("Player", deck)
-                    gl = GameLogic(deck, dealer, player)
-                else:
-                    tester = pop.best_agent
-                    tester.hands_played = 0
-                    tester.money = 1000
-                    gl = tester.gl
-                test_stop_button_active = not test_stop_button_active
-                
-            else:
-                # Check if the Deal button is clicked
-                if deal_button.collidepoint(mouse_x, mouse_y):
-                    # Deal cards only if not already dealt
-                    if gl.ended and not bet_active and bet_text != "":
-                        gl.deal()
-
-                # Check if the Hit button is clicked
-                if hit_button.collidepoint(mouse_x, mouse_y):
-                    # Draw a card only if cards have been dealt
-                    if not gl.ended:
-                        gl.hit()
-                    
-                # Check if the Stand button is clicked
-                if stand_button.collidepoint(mouse_x, mouse_y):
-                    # Move to the next hand only if cards have been dealt
-                    if not gl.ended:
-                        gl.stand()
-
-                # Check if the Double Down button is clicked
-                if double_down_button.collidepoint(mouse_x, mouse_y):
-                    # Double the bet and draw a card only if cards have been dealt and the player has enough money
-                    if not gl.ended:
-                        gl.double_down()
-
-                # Check if the Insurance button is clicked
-                if insurance_button.collidepoint(mouse_x, mouse_y):
-                    # Pay insurance only if the dealer reaveled card is an Ace and the player has enough money
-                    if not gl.ended:
-                        gl.insurance()
-
-                # Check if the Split button is clicked
-                if split_button.collidepoint(mouse_x, mouse_y):
-                    # Split the hand only if he has two cards of the same rank and the player has enough money
-                        gl.split()
-
-
-        # Check for text input events while the Bet button is active
-        if event.type == pygame.KEYDOWN and bet_active and not test_stop_button_active:
-            if event.key == pygame.K_RETURN:
-                bet_amount = int(bet_text)
-                if bet_amount > 0 and bet_amount <= player.money:
-                    player.set_bet(bet_amount)
-                    bet_active = False  # Deactivate text input after pressing Enter
-            elif event.key == pygame.K_BACKSPACE:
-                bet_text = bet_text[:-1]
-            # Only allow numbers to be entered
-            elif event.unicode.isdigit():
-                bet_text += event.unicode
-
-    if test_stop_button_active:
-        if(gl.ended):
-            if tester.money>= 1:
-                tester.decide_bet()
-                gl.deal()
-                tester.should_insure()
-        else:
-            if gl.can_play():
-                tester.action()
-
-    # Clear the screen
-    screen.fill(green_cloth)
-
-    if not gl.ended:
-        # Render dealer's cards
-        gl.dealer.show(screen)
-        # Render player's cards
-        gl.player.show(screen)
-
+def draw_buttons():
     # Draw buttons
     pygame.draw.rect(screen, white, deal_button)
     pygame.draw.rect(screen, white, hit_button)
@@ -210,6 +107,115 @@ while True:
             pygame.draw.rect(screen, black, (bet_button.x + 10 + font.size(f"Bets: {bet_text}")[0], bet_button.y + 10, 2, 20))
         bet_label_text = font.render(f"Bets: {bet_text}", True, black)
 
+# Create game objects
+deck = Deck()
+dealer = Dealer(deck)
+player = Player(deck)
+gl = GameLogic(deck, dealer, player)
+
+# Create population
+pop = Population()
+best_agents = []
+pop.calculate_fitness()
+best_agents.append(pop.best_agent)
+
+
+# Main game loop
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+        
+        # Check for button press events
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+
+            # Check if the Minus button is clicked
+            if minus_button.collidepoint(mouse_x, mouse_y) and not test_stop_button_active:
+                 if current_generation > 1:
+                    current_generation -= 1
+            
+            # Check if the Plus button is clicked
+            if plus_button.collidepoint(mouse_x, mouse_y) and not test_stop_button_active:
+                if current_generation == len(best_agents):
+                    pop.next_gen()
+                    best_agents.append(pop.best_agent)
+                current_generation += 1
+
+            # Check if the Test/Stop button is clicked
+            if test_stop_button.collidepoint(mouse_x, mouse_y):
+                if test_stop_button_active:
+                    deck = Deck()
+                    dealer = Dealer(deck)
+                    player = Player(deck)
+                    gl = GameLogic(deck, dealer, player)
+                else:
+                    tester = best_agents[current_generation-1]
+                    tester.hands_played = 0
+                    tester.money = 1000
+                    gl = tester.gl
+                test_stop_button_active = not test_stop_button_active
+                
+            else:
+                # Check if the Deal button is clicked
+                if deal_button.collidepoint(mouse_x, mouse_y) and gl.ended and not bet_active and bet_text != "":
+                        gl.deal()
+
+                # Check if the Hit button is clicked
+                if hit_button.collidepoint(mouse_x, mouse_y) and not gl.ended:
+                        gl.hit()
+                    
+                # Check if the Stand button is clicked
+                if stand_button.collidepoint(mouse_x, mouse_y) and not gl.ended:
+                        gl.stand()
+
+                # Check if the Double Down button is clicked
+                if double_down_button.collidepoint(mouse_x, mouse_y) and not gl.ended:
+                        gl.double_down()
+
+                # Check if the Insurance button is clicked
+                if insurance_button.collidepoint(mouse_x, mouse_y) and not gl.ended:
+                        gl.insurance()
+
+                # Check if the Split button is clicked
+                if split_button.collidepoint(mouse_x, mouse_y) and not gl.ended:
+                        gl.split()
+
+
+        # Check for text input events while the Bet button is active
+        if event.type == pygame.KEYDOWN and bet_active and not test_stop_button_active:
+            if event.key == pygame.K_RETURN:
+                bet_amount = int(bet_text)
+                if bet_amount > 0 and bet_amount <= player.money:
+                    player.set_bet(bet_amount)
+                    bet_active = False  # Deactivate text input after pressing Enter
+            elif event.key == pygame.K_BACKSPACE:
+                bet_text = bet_text[:-1]
+            # Only allow numbers to be entered
+            elif event.unicode.isdigit():
+                bet_text += event.unicode
+
+    if test_stop_button_active:
+        if gl.ended:
+            if tester.money>= 1:
+                tester.decide_bet()
+                gl.deal()
+                tester.should_insure()
+        else:
+            if gl.can_play():
+                tester.action()
+
+    # Clear the screen
+    screen.fill(green_cloth)
+
+    if not gl.ended:
+        # Render dealer's cards
+        gl.dealer.show(screen)
+        # Render player's cards
+        gl.player.show(screen)
+    
+    draw_buttons()
     pygame.display.flip() 
     clock.tick(60)
     pygame.time.delay(TIME)

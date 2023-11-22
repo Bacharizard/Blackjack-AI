@@ -84,7 +84,8 @@ class GameLogic:
         self.player.reset_bets()
 
     def check_for_action(self):
-        # If the player can't play anymore, move on   
+        # Checks if there needs to be actions done for the player to continue
+        # returns True if there is an action to be done, False otherwise
         if self.player.pointer == -1:
             if self.dealer.hidden:
                 self.dealer.hidden = False  

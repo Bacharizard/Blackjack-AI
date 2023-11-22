@@ -4,8 +4,7 @@ from Hand import Hand
 from Dealer import Dealer
 
 class Player:
-    def __init__(self, name, deck):
-        self.name = name
+    def __init__(self, deck):
         self.pointer = 0
         self.deck = deck
         self.hands = [Hand()]  # Initialize with one hand
